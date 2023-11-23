@@ -1,17 +1,14 @@
-use std::rc::Rc;
-
 #[derive(Debug)]
-pub struct Parent {
-    pub locations: Rc<Vec<usize>>,
+pub struct Chromosome {
+    pub gens: Vec<usize>,
     fitness: Option<f32>,
     fitness_ratio: Option<f32>,
 }
 
-impl Parent {
-    pub fn new(locations: Vec<usize>) -> Parent {
-        let locations = Rc::new(locations);
-        let new_instance = Parent {
-            locations: Rc::clone(&locations),
+impl Chromosome {
+    pub fn new(gens: Vec<usize>) -> Chromosome {
+        let new_instance = Chromosome {
+            gens,
             fitness: None,
             fitness_ratio: None,
         };
@@ -21,9 +18,9 @@ impl Parent {
 
     pub fn intersects(&self) -> f32 {
         let mut fitness: f32 = 0.0;
-        for i in 0..self.locations.len() - 1 {
-            for j in &i + 1..self.locations.len() {
-                if &i.abs_diff(j) == &self.locations[i].abs_diff(self.locations[j]) {
+        for i in 0..self.gens.len() - 1 {
+            for j in &i + 1..self.gens.len() {
+                if &i.abs_diff(j) == &self.gens[i].abs_diff(self.gens[j]) {
                     fitness += 1.0;
                 }
             }
@@ -58,12 +55,12 @@ impl Parent {
         #[derive(Debug)]
         #[allow(unused)]
         struct Print<T, U> {
-            locations: T,
+            gens: T,
             intersects: U,
             fitness: U,
         }
         let print = Print {
-            locations: &self.locations,
+            gens: &self.gens,
             intersects: &self.intersects(),
             fitness: &self.fitness(),
         };
