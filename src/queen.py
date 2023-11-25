@@ -71,7 +71,7 @@ class queen:
         for i in range(ind1,ind2+1):
             child1[i]=x[i]
         pointer1 = (ind2 + 1) % self.length
-        pointer2=(ind2+1)%self.length
+        pointer2 = (ind2 + 1) % self.length
         while 0 in child1:
             if y[pointer2] not in child1:
                 child1[pointer1]=y[pointer2]

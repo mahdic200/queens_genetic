@@ -1,16 +1,20 @@
+use std::cell::RefCell;
+
 #[derive(Debug)]
 pub struct Chromosome {
     pub gens: Vec<usize>,
-    fitness: Option<f32>,
-    fitness_ratio: Option<f32>,
+    fitness: RefCell<Option<f32>>,
+    fitness_ratio: RefCell<Option<f32>>,
+    probability_range: RefCell<Option<[f32; 2]>>,
 }
 
 impl Chromosome {
     pub fn new(gens: Vec<usize>) -> Chromosome {
         let new_instance = Chromosome {
             gens,
-            fitness: None,
-            fitness_ratio: None,
+            fitness: RefCell::new(None),
+            fitness_ratio: RefCell::new(None),
+            probability_range: RefCell::new(None),
         };
         new_instance.fitness();
         new_instance
@@ -29,21 +33,42 @@ impl Chromosome {
     }
 
     pub fn fitness(&self) -> f32 {
-        if let Some(fitness) = self.fitness {
+        let mut self_fitness = self.fitness.borrow_mut();
+        if let Some(fitness) = *self_fitness {
             fitness
         }
         else {
-            1.0 / (self.intersects() + self.epsilon())
+            let new_fitness = 1.0 / (self.intersects() + self.epsilon());
+            self_fitness.replace(new_fitness);
+            new_fitness
         }
     }
 
-    pub fn fitness_ratio(&mut self, summation: &f32) -> f32 {
-        if let Some(fitness_ratio) = self.fitness_ratio {
+    pub fn fitness_ratio(&self, summation: &f32) -> f32 {
+        let mut self_fitness_ratio = self.fitness_ratio.borrow_mut();
+        if let Some(fitness_ratio) = *self_fitness_ratio {
             fitness_ratio
         }
         else {
-            self.fitness_ratio = Some(&self.fitness() / summation);
+            self_fitness_ratio.replace(&self.fitness() / summation);
             &self.fitness() / summation
+        }
+    }
+
+    pub fn set_probability_range(&self, range: [f32; 2]) -> () {
+        self.probability_range.borrow_mut().replace(range);
+    }
+
+    pub fn is_chosen(&self, number: f32) -> bool {
+        if let Some(_) = *self.probability_range.borrow() {}
+        else {
+            panic!("probability range must be valid or not None in Chromosome structure !");
+        }
+        if number >= self.probability_range.borrow().unwrap()[0] && number < self.probability_range.borrow().unwrap()[1] {
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
