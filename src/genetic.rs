@@ -12,7 +12,7 @@ pub struct Genetic {
     population_size: u32,
     per_mutation: f32,
     pub population: RefCell<Vec<Rc<Chromosome>>>,
-    maxiter: u32,
+    pub maxiter: u32,
 }
 
 impl Genetic {
@@ -94,7 +94,7 @@ impl Genetic {
         new_parents
     }
     // make this function private
-    pub fn crossover(&self, parent_1: Rc<Chromosome>, parent_2: Rc<Chromosome>) -> (Rc<Vec<usize>>, Rc<Vec<usize>>) {
+    fn crossover(&self, parent_1: Rc<Chromosome>, parent_2: Rc<Chromosome>) -> (Rc<Chromosome>, Rc<Chromosome>) {
         let parent_1 = &parent_1.gens;
         let parent_2 = &parent_2.gens;
 
@@ -137,11 +137,77 @@ impl Genetic {
             poi_2 = (poi_2 + 1) % self.chromosome_length;
         }
 
+        let new_child_1 = Chromosome::new(new_child_1);
+        let new_child_2 = Chromosome::new(new_child_2);
+
         (Rc::new(new_child_1), Rc::new(new_child_2))
     }
 
-    pub fn recombination(&self) {
-        // self.crossover();
+    fn recombination(&self, parents: &Vec<Rc<Chromosome>>) -> Vec<Rc<Chromosome>> {
+        let mut offsprings: Vec<Rc<Chromosome>> = Vec::new();
+        for i in (0..(parents.len() - 1)).step_by(2) {
+            let (child1, child2) =
+            self.crossover(
+                Rc::clone(&parents[i]),
+                Rc::clone(&parents[i + 1])
+            );
+            offsprings.push(Rc::clone(&child1));
+            offsprings.push(Rc::clone(&child2));
+        }
+        
+        let offsprings = offsprings;
+        offsprings
     }
 
+    fn swap_mutation(&self, chromosome: &Rc<Chromosome>) -> Rc<Chromosome> {
+        let mut new_gens: Vec<usize> = chromosome.gens.clone();
+        if rand::thread_rng().gen_range(0.0..1.0) <= self.per_mutation {
+            let i = rand::thread_rng().gen_range(0..new_gens.len());
+            let j = rand::thread_rng().gen_range(0..new_gens.len());
+            let t = new_gens[i];
+            new_gens[i] = new_gens[j];
+            new_gens[j] = t;
+        }
+
+        let chromosome = Chromosome::new(new_gens);
+        Rc::new(chromosome)
+    }
+
+    fn mutation(&self, offsprings: Vec<Rc<Chromosome>>) -> Vec<Rc<Chromosome>> {
+        let mut offsprings = offsprings;
+        for i in 0..offsprings.len() {
+            offsprings[i] = self.swap_mutation(&offsprings[i]);
+        }
+        offsprings
+    }
+
+    pub fn maximum_fitness(&self, population: &Vec<Rc<Chromosome>>) -> (usize, f32) {
+        let mut max_i = 0;
+        let mut max_fit = population[0].fitness();
+        for i in 0..population.len() {
+            if population[i].fitness() > max_fit {
+                max_fit = population[i].fitness();
+                max_i = i;
+            }
+        }
+        (max_i, max_fit)
+    }
+
+    pub fn start_loop(&self) -> (Rc<Chromosome>, Vec<f32>) {
+        let mut best_fitnesses: Vec<f32> = Vec::new();
+        let mut best: Rc<Chromosome> = Rc::new(Chromosome::new(vec![1, 2, 3, 4, 5, 6, 7, 8]));
+        for _i in 0..self.maxiter {
+            let parents = self.parent_selection();
+            let mut offsprings = self.recombination(&parents);
+            offsprings = self.mutation(offsprings);
+            self.population.replace(offsprings);
+            let self_population = self.population.borrow_mut();
+            let (best_index, best_fitness) = self.maximum_fitness(&self_population);
+            best_fitnesses.push(best_fitness);
+            if best.fitness() < self_population[best_index].fitness() {
+                best = Rc::clone(&self_population[best_index]);
+            }
+        }
+        (best, best_fitnesses)
+    }
 }
