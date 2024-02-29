@@ -11,7 +11,7 @@ pub fn draw(points: Vec<(f32, f32)>, maxiter: f32) -> Result<(), Box<dyn std::er
         .margin(5)
         .x_label_area_size(30)
         .y_label_area_size(30)
-        .build_cartesian_2d(-2.0f32..1000f32, -0.1f32..1.0f32)?;
+        .build_cartesian_2d(-2.0f32..maxiter, -0.1f32..1.0f32)?;
 
     chart.configure_mesh().draw()?;
 
