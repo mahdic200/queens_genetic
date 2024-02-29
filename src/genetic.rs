@@ -196,7 +196,7 @@ impl Genetic {
     pub fn start_loop(&self) -> (Rc<Chromosome>, Vec<f32>) {
         let mut best_fitnesses: Vec<f32> = Vec::new();
         let mut best: Rc<Chromosome> = Rc::new(Chromosome::new(vec![1, 2, 3, 4, 5, 6, 7, 8]));
-        for _i in 0..self.maxiter {
+        for i in 0..self.maxiter {
             let parents = self.parent_selection();
             let mut offsprings = self.recombination(&parents);
             offsprings = self.mutation(offsprings);
@@ -206,6 +206,12 @@ impl Genetic {
             best_fitnesses.push(best_fitness);
             if best.fitness() < self_population[best_index].fitness() {
                 best = Rc::clone(&self_population[best_index]);
+            }
+            if i == self.maxiter - 1 {
+                println!("last population : ");
+                for chromo in &*self_population {
+                    println!("g: {:?}, c: {:?}, f: {:?}", chromo.gens, chromo.intersects(), chromo.fitness());
+                }
             }
         }
         (best, best_fitnesses)
