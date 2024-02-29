@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 pub fn draw(points: Vec<(f32, f32)>, maxiter: f32) -> Result<(), Box<dyn std::error::Error>> {
-    let mut width = 680;
+    let mut width = maxiter as u32;
     if ((maxiter * 3.0) as u32) < 1220 {
         width = 1220;
     }
